@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuraStore | Modern E-Commerce Experience</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Inter Font & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .badge-pulse {
+      animation: pulse-slow 2s infinite ease-in-out;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.04); }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-teal-500 selection:text-white">
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <a href="#" class="flex items-center gap-2 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-gem text-lg"></i>
+            </div>
+            <div>
+              <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-700 to-emerald-600 bg-clip-text text-transparent">AuraStore</span>
+              <span class="block text-[10px] tracking-wider uppercase font-semibold text-slate-400 -mt-1">Premium Retail</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Search Bar (Desktop) -->
+        <div class="hidden md:flex flex-1 max-w-md mx-8">
+          <div class="relative w-full">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input 
+              type="text" 
+              id="desktopSearchInput"
+              placeholder="Search gadgets, style, decor..." 
+              class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+              oninput="handleSearch(this.value)"
+            />
+          </div>
+        </div>
+
+        <!-- Header Actions: User Profile / Auth Button & Cart -->
+        <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Unauthenticated View -->
+          <div id="loggedOutButtons" class="flex items-center gap-2">
+            <button 
+              onclick="openAuthModal('login')" 
+              class="px-3.5 py-2 text-sm font-medium text-slate-700 hover:text-teal-600 transition-colors rounded-lg hover:bg-slate-100"
+            >
+              Sign In
+            </button>
+            <button 
+              onclick="openAuthModal('register')" 
+              class="px-4 py-2 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm hover:shadow transition-all"
+            >
+              Get Started
+            </button>
+          </div>
+
+          <!-- Authenticated View (Hidden by default) -->
+          <div id="loggedInProfile" class="hidden items-center gap-3">
+            <div class="flex items-center gap-2.5 bg-slate-100/80 px-3 py-1.5 rounded-full border border-slate-200/80">
+              <div id="userAvatar" class="w-7 h-7 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center uppercase shadow-sm">
+                U
+              </div>
+              <span id="userDisplayName" class="text-sm font-semibold text-slate-800 hidden sm:inline-block max-w-[120px] truncate">User</span>
+            </div>
+            <button 
+              onclick="handleLogout()" 
+              title="Sign Out" 
+              class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg text-sm transition-colors"
+            >
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+
+          <!-- Cart Trigger -->
+          <button 
+            onclick="toggleCartModal(true)" 
+            class="relative p-2.5 text-slate-700 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+            title="Shopping Cart"
+          >
+            <i class="fa-solid fa-bag-shopping text-xl"></i>
+            <span id="cartCountBadge" class="absolute -top-1 -right-1 bg-teal-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm transform scale-0 transition-transform">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Search Bar -->
+      <div class="pb-3 md:hidden">
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input 
+            type="text" 
+            placeholder="Search items..." 
+            class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500"
+            oninput="handleSearch(this.value)"
+          />
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Auth Required / Member Benefits Banner -->
+  <section id="guestHeroBanner" class="bg-gradient-to-r from-teal-700 via-teal-800 to-slate-900 text-white py-12 px-4 sm:px-6 relative overflow-hidden">
+    <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+      <div class="space-y-4 text-center md:text-left max-w-2xl">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/20 text-teal-200 border border-teal-400/30 uppercase tracking-wider">
+          <i class="fa-solid fa-sparkles"></i> Members Only Exclusive Deals
+        </span>
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Unlock the Complete Boutique Collection
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+          Sign up or log in right now to reveal live catalog pricing, claim your 20% first-order voucher, and manage your cart.
+        </p>
+        <div class="flex flex-wrap gap-3 justify-center md:justify-start pt-2">
+          <button 
+            onclick="openAuthModal('register')" 
+            class="px-6 py-3 rounded-xl bg-emerald-400 text-slate-950 font-bold hover:bg-emerald-300 transition-all shadow-lg shadow-emerald-500/20"
+          >
+            Create Free Account
+          </button>
+          <button 
+            onclick="fillDemoAccount()" 
+            class="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium backdrop-blur border border-white/20 transition-all"
+          >
+            <i class="fa-solid fa-bolt mr-1.5 text-amber-300"></i> Instant Demo Login
+          </button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 text-center w-full md:w-auto">
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+          <i class="fa-solid fa-truck-fast text-emerald-400 text-2xl mb-1"></i>
+          <p class="font-bold text-lg">Free Express</p>
+          <p class="text-xs text-slate-300">Orders over $75</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+          <i class="fa-solid fa-shield-halved text-emerald-400 text-2xl mb-1"></i>
+          <p class="font-bold text-lg">Safe Checkout</p>
+          <p class="text-xs text-slate-300">Encrypted Payments</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Welcome Back Logged-in Banner -->
+  <section id="userWelcomeBanner" class="hidden bg-teal-50 border-b border-teal-100 py-6 px-4">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-teal-950">Welcome, <span id="welcomeUserName">Shopper</span>!</h2>
+          <p class="text-xs text-teal-700">Member Status: <span class="font-semibold text-emerald-600">VIP Gold (15% promo applied at checkout)</span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-teal-800">
+        <span class="inline-flex items-center gap-1 font-medium bg-white px-3 py-1.5 rounded-lg border border-teal-200">
+          <i class="fa-solid fa-tags text-teal-600"></i> Code: <strong>AURA15</strong>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <!-- Filter Bar & Category Tabs -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      <!-- Category Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar" id="categoryTabs">
+        <button onclick="setCategory('all')" data-cat="all" class="cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-full bg-teal-600 text-white whitespace-nowrap shadow-sm">
+          All Products
+        </button>
+        <button onclick="setCategory('electronics')" data-cat="electronics" class="cat-pill px-4 py-2 text-xs sm:text-sm font-medium rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+          Electronics
+        </button>
+        <button onclick="setCategory('fashion')" data-cat="fashion" class="cat-pill px-4 py-2 text-xs sm:text-sm font-medium rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+          Fashion & Apparel
+        </button>
+        <button onclick="setCategory('home')" data-cat="home" class="cat-pill px-4 py-2 text-xs sm:text-sm font-medium rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+          Home & Living
+        </button>
+        <button onclick="setCategory('accessories')" data-cat="accessories" class="cat-pill px-4 py-2 text-xs sm:text-sm font-medium rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap">
+          Accessories
+        </button>
+      </div>
+
+      <!-- Sorting & Counter -->
+      <div class="flex items-center justify-between md:justify-end gap-3 text-sm">
+        <span class="text-xs text-slate-500 font-medium" id="resultsCount">Showing 8 items</span>
+        <div class="flex items-center gap-2">
+          <label for="sortSelect" class="text-xs font-semibold text-slate-500 uppercase">Sort by:</label>
+          <select 
+            id="sortSelect" 
+            onchange="handleSort(this.value)" 
+            class="bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+          >
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="rating">Highest Rated</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Grid Container -->
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+      <!-- Injected via JavaScript -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="noProductsFound" class="hidden text-center py-16">
+      <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-700">No matching products found</h3>
+      <p class="text-sm text-slate-500 mt-1">Try adjusting your filters or search keywords.</p>
+      <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-xl text-sm font-medium hover:bg-teal-700">
+        Reset All Filters
+      </button>
+    </div>
+  </main>
+
+  <!-- Auth Modal (Login / Register Tabs) -->
+  <div id="authModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-200 relative border border-slate-100" id="authModalDialog">
+      <!-- Close Button -->
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition-colors">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <!-- Tabs Header -->
+      <div class="flex border-b border-slate-200 bg-slate-50/70 p-1">
+        <button id="tabBtnLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-center text-sm font-bold text-teal-700 border-b-2 border-teal-600 transition-all">
+          Sign In
+        </button>
+        <button id="tabBtnRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-all">
+          Create Account
+        </button>
+      </div>
+
+      <div class="p-6 sm:p-8">
+        <!-- Error / Info Alert inside Modal -->
+        <div id="authAlert" class="hidden mb-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2"></div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1.5" for="loginEmail">Email Address</label>
+            <div class="relative">
+              <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="loginEmail" 
+                type="email" 
+                required 
+                placeholder="demo@aurastore.com" 
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="text-xs font-semibold uppercase text-slate-600" for="loginPassword">Password</label>
+              <a href="javascript:void(0)" onclick="notify('Password reset link sent to demo email', 'info')" class="text-xs text-teal-600 hover:underline">Forgot?</a>
+            </div>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="loginPassword" 
+                type="password" 
+                required 
+                placeholder="••••••••" 
+                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+              <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-teal-600/20 active:scale-[0.98]"
+          >
+            Sign In to AuraStore
+          </button>
+
+          <!-- Quick Fill Demo Button -->
+          <div class="pt-2">
+            <button 
+              type="button" 
+              onclick="fillDemoAccount()" 
+              class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <i class="fa-solid fa-bolt text-amber-500"></i> Auto-fill Demo Account
+            </button>
+          </div>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="space-y-4 hidden">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1.5" for="regName">Full Name</label>
+            <div class="relative">
+              <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="regName" 
+                type="text" 
+                required 
+                placeholder="Jane Doe" 
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1.5" for="regEmail">Email Address</label>
+            <div class="relative">
+              <i class="fa-regular fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="regEmail" 
+                type="email" 
+                required 
+                placeholder="jane@example.com" 
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1.5" for="regPassword">Create Password</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="regPassword" 
+                type="password" 
+                required 
+                placeholder="Minimum 6 characters" 
+                minlength="6"
+                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+              <button type="button" onclick="togglePasswordVisibility('regPassword', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1.5" for="regConfirmPassword">Confirm Password</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock-check absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input 
+                id="regConfirmPassword" 
+                type="password" 
+                required 
+                placeholder="Repeat password" 
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+          
+          <button 
+            type="submit" 
+            class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-emerald-600/20 active:scale-[0.98]"
+          >
+            Create My Account
+          </button>
+        </form>
+
+        <p class="text-[11px] text-center text-slate-400 mt-5 leading-normal">
+          By continuing, you agree to AuraStore's Terms of Service and Privacy Policy.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div id="cartDrawerBackdrop" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300" onclick="toggleCartModal(false)"></div>
+  <div id="cartDrawer" class="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Cart Header -->
+    <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-cart-shopping text-teal-600 text-lg"></i>
+        <h3 class="font-bold text-slate-800 text-base">Your Shopping Cart</h3>
+        <span id="drawerBadgeCount" class="bg-teal-100 text-teal-700 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+      </div>
+      <button onclick="toggleCartModal(false)" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Cart Items List -->
+    <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-5 space-y-4">
+      <!-- Items dynamically populated -->
+    </div>
+
+    <!-- Cart Footer with Pricing breakdown -->
+    <div class="p-5 border-t border-slate-200 bg-slate-50 space-y-3">
+      <div class="space-y-1.5 text-xs text-slate-500">
+        <div class="flex justify-between">
+          <span>Subtotal</span>
+          <span id="cartSubtotal" class="font-semibold text-slate-800">$0.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Estimated Shipping</span>
+          <span id="cartShipping" class="font-semibold text-slate-800">$0.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Member Discount</span>
+          <span id="cartDiscount" class="font-semibold text-emerald-600">-$0.00</span>
+        </div>
+        <div class="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
+          <span>Total</span>
+          <span id="cartGrandTotal" class="text-teal-700 text-lg">$0.00</span>
+        </div>
+      </div>
+
+      <button 
+        id="checkoutBtn"
+        onclick="initiateCheckout()" 
+        class="w-full py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-teal-600/30 flex items-center justify-center gap-2"
+      >
+        <span>Proceed to Checkout</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <button 
+        onclick="clearCart()" 
+        class="w-full py-1 text-xs text-slate-400 hover:text-red-500 transition-colors font-medium text-center"
+      >
+        Clear shopping bag
+      </button>
+    </div>
+  </div>
+
+  <!-- Product Quick View Modal -->
+  <div id="quickViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-200 relative border border-slate-100 max-h-[90vh] flex flex-col md:flex-row">
+      <button onclick="closeQuickView()" class="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-700 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      
+      <div class="w-full md:w-1/2 bg-slate-100 flex items-center justify-center p-4">
+        <img id="qvImage" src="" alt="Product" class="max-h-72 object-contain rounded-xl mix-blend-multiply" />
+      </div>
+
+      <div class="w-full md:w-1/2 p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <span id="qvCategory" class="text-[11px] uppercase tracking-wider font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded">Category</span>
+            <span id="qvBadge" class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">In Stock</span>
+          </div>
+          <h3 id="qvTitle" class="text-xl font-bold text-slate-800">Product Title</h3>
+          <div class="flex items-center gap-2 text-xs">
+            <div id="qvStars" class="text-amber-400 flex items-center"></div>
+            <span id="qvRatingText" class="text-slate-500 font-medium">(4.8 / 120 reviews)</span>
+          </div>
+          <div id="qvPriceBlock" class="text-2xl font-extrabold text-teal-700">
+            $0.00
+          </div>
+          <p id="qvDescription" class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+            Description text goes here.
+          </p>
+        </div>
+
+        <div class="pt-6 mt-4 border-t border-slate-100">
+          <button 
+            id="qvAddToCartBtn"
+            onclick="addQuickViewToCart()" 
+            class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-teal-600/20 flex items-center justify-center gap-2"
+          >
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>Add to Cart</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Confirmation Dialog -->
+  <div id="checkoutSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center shadow-2xl relative">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800">Order Placed Successfully!</h3>
+      <p class="text-xs text-slate-500 mt-2">
+        Thank you for choosing AuraStore. We have sent a confirmation email with your tracking details.
+      </p>
+      <div class="bg-slate-50 p-3 rounded-xl my-4 text-xs font-mono text-slate-600 border border-slate-200">
+        Order ID: <span id="orderRefNumber" class="font-bold text-slate-800">#AURA-9821</span>
+      </div>
+      <button onclick="closeCheckoutSuccess()" class="w-full py-2.5 bg-teal-600 text-white rounded-xl font-semibold text-sm hover:bg-teal-700 transition">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <footer class="bg-white border-t border-slate-200 text-slate-600 text-xs py-8 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-gem text-teal-600"></i>
+        <span class="font-semibold text-slate-800">AuraStore Retail</span> &copy; 2026. All rights reserved.
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="javascript:void(0)" onclick="notify('Privacy policy modal simulated', 'info')" class="hover:text-teal-600">Privacy Policy</a>
+        <a href="javascript:void(0)" onclick="notify('Terms of service simulated', 'info')" class="hover:text-teal-600">Terms of Service</a>
+        <a href="javascript:void(0)" onclick="notify('Support desk reached out', 'info')" class="hover:text-teal-600">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Product Database with high quality images and metadata
+    const PRODUCTS = [
+      {
+        id: 1,
+        title: "SonicPro Wireless ANC Headphones",
+        category: "electronics",
+        price: 189.99,
+        rating: 4.8,
+        reviews: 240,
+        badge: "Best Seller",
+        badgeColor: "bg-amber-500 text-white",
+        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+        description: "Studio-grade active noise cancellation with 40-hour battery life and memory foam comfort ear cushions."
+      },
+      {
+        id: 2,
+        title: "Aura Smartwatch Series X",
+        category: "electronics",
+        price: 249.00,
+        rating: 4.9,
+        reviews: 182,
+        badge: "New",
+        badgeColor: "bg-emerald-500 text-white",
+        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+        description: "Always-on retina OLED display, continuous ECG & SpO2 biometric monitoring, water resistant up to 50 meters."
+      },
+      {
+        id: 3,
+        title: "Minimalist Italian Leather Tote",
+        category: "fashion",
+        price: 135.50,
+        rating: 4.7,
+        reviews: 95,
+        badge: "Popular",
+        badgeColor: "bg-indigo-500 text-white",
+        image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&auto=format&fit=crop&q=80",
+        description: "Handcrafted full-grain calfskin bag with reinforced laptop sleeve and antiqued brass hardware."
+      },
+      {
+        id: 4,
+        title: "Nordic Ceramic Pour-Over Set",
+        category: "home",
+        price: 48.00,
+        rating: 4.6,
+        reviews: 64,
+        badge: "Sale",
+        badgeColor: "bg-rose-500 text-white",
+        image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80",
+        description: "Artisan matte glazed stoneware dripper with insulated glass carafe for the ultimate morning brew."
+      },
+      {
+        id: 5,
+        title: "Modern Matte Metal Desk Lamp",
+        category: "home",
+        price: 89.00,
+        rating: 4.5,
+        reviews: 110,
+        badge: null,
+        image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&auto=format&fit=crop&q=80",
+        description: "Touch dimmable warm-to-cool LED desk luminaire featuring wireless base charging pad."
+      },
+      {
+        id: 6,
+        title: "Aviator Titanium Polarized Shades",
+        category: "accessories",
+        price: 119.95,
+        rating: 4.8,
+        reviews: 138,
+        badge: "Trending",
+        badgeColor: "bg-teal-600 text-white",
+        image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&auto=format&fit=crop&q=80",
+        description: "Ultra-lightweight Japanese titanium frames with UV400 anti-glare polarized gradient lenses."
+      },
+      {
+        id: 7,
+        title: "Organic Wool Knit Sweater",
+        category: "fashion",
+        price: 92.00,
+        rating: 4.4,
+        reviews: 77,
+        badge: null,
+        image: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=600&auto=format&fit=crop&q=80",
+        description: "Ethically harvested merino wool jumper in natural oatmeal heather with ribbed hems."
+      },
+      {
+        id: 8,
+        title: "Aerospace EDC Multi-Tool Pen",
+        category: "accessories",
+        price: 36.50,
+        rating: 4.9,
+        reviews: 312,
+        badge: "Hot",
+        badgeColor: "bg-amber-600 text-white",
+        image: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=600&auto=format&fit=crop&q=80",
+        description: "Precision CNC-machined brass and aircraft aluminum with glass breaker and stylus tip."
+      }
+    ];
+
+    // State Management
+    let currentUser = null;
+    let cart = [];
+    let activeCategory = 'all';
+    let searchQuery = '';
+    let currentSort = 'featured';
+    let selectedQuickViewItem = null;
+
+    // Local Storage Keys
+    const STORAGE_USER_KEY = 'aurastore_active_user';
+    const STORAGE_CART_KEY = 'aurastore_cart_items';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restore user session if saved
+      try {
+        const storedUser = localStorage.getItem(STORAGE_USER_KEY);
+        if (storedUser) {
+          currentUser = JSON.parse(storedUser);
+        }
+      } catch (err) {
+        console.error("Failed to parse stored user", err);
+      }
+
+      // Restore cart items
+      try {
+        const storedCart = localStorage.getItem(STORAGE_CART_KEY);
+        if (storedCart) {
+          cart = JSON.parse(storedCart);
+        }
+      } catch (err) {
+        console.error("Failed to parse stored cart", err);
+      }
+
+      updateUserUI();
+      renderProducts();
+      updateCartUI();
+    });
+
+    // Save cart state
+    function saveCart() {
+      try {
+        localStorage.setItem(STORAGE_CART_KEY, JSON.stringify(cart));
+      } catch (e) {
+        console.warn("Storage error", e);
+      }
+      updateCartUI();
+    }
+
+    // Save user session
+    function saveUserSession(user) {
+      currentUser = user;
+      try {
+        if (user) {
+          localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(user));
+        } else {
+          localStorage.removeItem(STORAGE_USER_KEY);
+        }
+      } catch (e) {
+        console.warn("Storage error", e);
+      }
+      updateUserUI();
+      renderProducts(); // Re-render to update pricing visibility or direct cart actions
+    }
+
+    function updateUserUI() {
+      const loggedOutBox = document.getElementById('loggedOutButtons');
+      const loggedInBox = document.getElementById('loggedInProfile');
+      const guestHero = document.getElementById('guestHeroBanner');
+      const userBanner = document.getElementById('userWelcomeBanner');
+      const userAvatar = document.getElementById('userAvatar');
+      const userDisplayName = document.getElementById('userDisplayName');
+      const welcomeUserName = document.getElementById('welcomeUserName');
+
+      if (currentUser) {
+        loggedOutBox.classList.add('hidden');
+        loggedInBox.classList.remove('hidden');
+        loggedInBox.classList.add('flex');
+        
+        guestHero.classList.add('hidden');
+        userBanner.classList.remove('hidden');
+
+        userAvatar.textContent = currentUser.name ? currentUser.name[0].toUpperCase() : 'U';
+        userDisplayName.textContent = currentUser.name || currentUser.email;
+        welcomeUserName.textContent = currentUser.name || 'Member';
+      } else {
+        loggedOutBox.classList.remove('hidden');
+        loggedInBox.classList.add('hidden');
+        loggedInBox.classList.remove('flex');
+
+        guestHero.classList.remove('hidden');
+        userBanner.classList.add('hidden');
+      }
+    }
+
+    // Auth Modal Logic
+    function openAuthModal(defaultTab = 'login') {
+      const modal = document.getElementById('authModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('authModalDialog').classList.remove('scale-95');
+      }, 10);
+      switchAuthTab(defaultTab);
+      clearAuthAlert();
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      modal.classList.add('opacity-0');
+      document.getElementById('authModalDialog').classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const regForm = document.getElementById('registerForm');
+      const tabBtnLogin = document.getElementById('tabBtnLogin');
+      const tabBtnRegister = document.getElementById('tabBtnRegister');
+      clearAuthAlert();
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        tabBtnLogin.className = "flex-1 py-3 text-center text-sm font-bold text-teal-700 border-b-2 border-teal-600 transition-all";
+        tabBtnRegister.className = "flex-1 py-3 text-center text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-all";
+      } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        tabBtnRegister.className = "flex-1 py-3 text-center text-sm font-bold text-teal-700 border-b-2 border-teal-600 transition-all";
+        tabBtnLogin.className = "flex-1 py-3 text-center text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 transition-all";
+      }
+    }
+
+    function showAuthAlert(msg, type = 'error') {
+      const el = document.getElementById('authAlert');
+      el.classList.remove('hidden');
+      if (type === 'error') {
+        el.className = "mb-4 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200";
+        el.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500"></i> ${msg}`;
+      } else {
+        el.className = "mb-4 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200";
+        el.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> ${msg}`;
+      }
+    }
+
+    function clearAuthAlert() {
+      const el = document.getElementById('authAlert');
+      el.classList.add('hidden');
+      el.innerHTML = '';
+    }
+
+    function togglePasswordVisibility(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      const icon = btn.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    }
+
+    function fillDemoAccount() {
+      openAuthModal('login');
+      document.getElementById('loginEmail').value = 'shopper@aurastore.com';
+      document.getElementById('loginPassword').value = 'secret123';
+      showAuthAlert("Demo credentials preloaded. Click 'Sign In' to continue.", 'success');
+    }
+
+    // Submit Handlers
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      if (!email || !password) {
+        showAuthAlert("Please provide both email and password.");
+        return;
+      }
+
+      // Simulated authentication success
+      const user = {
+        name: email.split('@')[0].replace(/[^a-zA-Z]/g, ' ') || 'Demo User',
+        email: email,
+        id: 'usr_' + Date.now()
+      };
+
+      saveUserSession(user);
+      closeAuthModal();
+      notify(`Welcome back, ${user.name}! Enjoy shopping.`, 'success');
+    }
+
+    function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirmPassword').value;
+
+      if (password !== confirm) {
+        showAuthAlert("Passwords do not match. Please re-enter.");
+        return;
+      }
+      if (password.length < 6) {
+        showAuthAlert("Password must be at least 6 characters long.");
+        return;
+      }
+
+      const user = {
+        name: name,
+        email: email,
+        id: 'usr_' + Date.now()
+      };
+
+      saveUserSession(user);
+      closeAuthModal();
+      notify(`Account created for ${name}! Promo AURA15 activated.`, 'success');
+    }
+
+    function handleLogout() {
+      saveUserSession(null);
+      notify("You have logged out successfully.", 'info');
+    }
+
+    function setCategory(cat) {
+      activeCategory = cat;
+      const pills = document.querySelectorAll('.cat-pill');
+      pills.forEach(p => {
+        if (p.getAttribute('data-cat') === cat) {
+          p.className = "cat-pill px-4 py-2 text-xs sm:text-sm font-semibold rounded-full bg-teal-600 text-white whitespace-nowrap shadow-sm";
+        } else {
+          p.className = "cat-pill px-4 py-2 text-xs sm:text-sm font-medium rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap";
+        }
+      });
+      renderProducts();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.toLowerCase().trim();
+      renderProducts();
+    }
+
+    function handleSort(sortType) {
+      currentSort = sortType;
+      renderProducts();
+    }
+
+    function resetFilters() {
+      activeCategory = 'all';
+      searchQuery = '';
+      currentSort = 'featured';
+      document.getElementById('desktopSearchInput').value = '';
+      document.getElementById('sortSelect').value = 'featured';
+      setCategory('all');
+    }
+
+    function getFilteredProducts() {
+      return PRODUCTS.filter(item => {
+        const matchCat = activeCategory === 'all' || item.category === activeCategory;
+        const matchSearch = !searchQuery || 
+          item.title.toLowerCase().includes(searchQuery) || 
+          item.description.toLowerCase().includes(searchQuery) ||
+          item.category.toLowerCase().includes(searchQuery);
+        return matchCat && matchSearch;
+      }).sort((a, b) => {
+        if (currentSort === 'price-asc') return a.price - b.price;
+        if (currentSort === 'price-desc') return b.price - a.price;
+        if (currentSort === 'rating') return b.rating - a.rating;
+        return a.id - b.id; // default featured
+      });
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      const emptyState = document.getElementById('noProductsFound');
+      const countEl = document.getElementById('resultsCount');
+
+      const filtered = getFilteredProducts();
+      countEl.textContent = `Showing ${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(product => {
+        const starsHtml = renderStarRating(product.rating);
+        const badgeHtml = product.badge ? `
+          <span class="absolute top-3 left-3 text-[10px] font-bold tracking-wide uppercase px-2.5 py-1 rounded-md shadow-sm ${product.badgeColor || 'bg-slate-900 text-white'}">
+            ${product.badge}
+          </span>
+        ` : '';
+
+        // If not logged in, prompt user friendly lock badge on prices or allow browsing with sign-in hook
+        const priceSection = currentUser 
+          ? `<div class="flex items-baseline gap-1">
+              <span class="text-xl font-extrabold text-teal-800">$${product.price.toFixed(2)}</span>
+             </div>`
+          : `<div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+              <i class="fa-solid fa-lock text-slate-400"></i>
+              <span>$${product.price.toFixed(2)} (Sign in for discount)</span>
+             </div>`;
+
+        const actionButton = currentUser
+          ? `<button 
+              onclick="addToCart(${product.id})" 
+              class="w-full py-2.5 px-3 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm shadow-teal-600/20"
+            >
+              <i class="fa-solid fa-cart-plus"></i> Add to Cart
+            </button>`
+          : `<button 
+              onclick="promptAuthForCart(${product.id})" 
+              class="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm"
+            >
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> Login to Buy
+            </button>`;
+
+        return `
+          <div class="group bg-white rounded-2xl border border-slate-200/80 hover:border-teal-500/30 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="relative bg-slate-100 overflow-hidden aspect-square flex items-center justify-center cursor-pointer" onclick="openQuickView(${product.id})">
+              <img 
+                src="${product.image}" 
+                alt="${product.title}" 
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                loading="lazy"
+                onerror="this.src='https://placehold.co/600x600/f1f5f9/475569?text=Product+Image'"
+              />
+              ${badgeHtml}
+              <button 
+                onclick="event.stopPropagation(); openQuickView(${product.id})" 
+                title="Quick View" 
+                class="absolute bottom-3 right-3 bg-white/90 backdrop-blur text-slate-700 hover:text-teal-600 w-9 h-9 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              >
+                <i class="fa-solid fa-eye text-sm"></i>
+              </button>
+            </div>
+
+            <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-teal-600">${product.category}</span>
+                <h4 
+                  onclick="openQuickView(${product.id})" 
+                  class="text-sm sm:text-base font-bold text-slate-800 hover:text-teal-700 cursor-pointer line-clamp-1 transition-colors mt-0.5"
+                >
+                  ${product.title}
+                </h4>
+
+                <div class="flex items-center gap-1.5 mt-2 text-xs">
+                  <div class="flex text-amber-400 text-[11px]">${starsHtml}</div>
+                  <span class="text-slate-400 font-medium text-[11px]">(${product.reviews})</span>
+                </div>
+              </div>
+
+              <div class="pt-4 mt-3 border-t border-slate-100">
+                <div class="mb-3 flex items-center justify-between">
+                  ${priceSection}
+                </div>
+                ${actionButton}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStarRating(rating) {
+      let stars = '';
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5;
+      for (let i = 0; i < 5; i++) {
+        if (i < full) {
+          stars += '<i class="fa-solid fa-star"></i>';
+        } else if (i === full && half) {
+          stars += '<i class="fa-solid fa-star-half-stroke"></i>';
+        } else {
+          stars += '<i class="fa-regular fa-star text-slate-300"></i>';
+        }
+      }
+      return stars;
+    }
+
+    function promptAuthForCart(productId) {
+      openAuthModal('login');
+      showAuthAlert("Please log in or register to add items to your shopping cart.", 'error');
+    }
+
+    function addToCart(productId) {
+      if (!currentUser) {
+        promptAuthForCart(productId);
+        return;
+      }
+
+      const product = PRODUCTS.find(p => p.id === productId);
+      if (!product) return;
+
+      const existingIndex = cart.findIndex(item => item.id === productId);
+      if (existingIndex > -1) {
+        cart[existingIndex].quantity += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          title: product.title,
+          price: product.price,
+          image: product.image,
+          quantity: 1
+        });
+      }
+
+      saveCart();
+      notify(`Added "${product.title}" to cart!`, 'success');
+      
+      // Animate cart badge
+      const badge = document.getElementById('cartCountBadge');
+      badge.classList.remove('scale-100');
+      badge.classList.add('scale-125');
+      setTimeout(() => badge.classList.remove('scale-125'), 200);
+    }
+
+    function updateCartItemQty(productId, change) {
+      const idx = cart.findIndex(p => p.id === productId);
+      if (idx === -1) return;
+
+      cart[idx].quantity += change;
+      if (cart[idx].quantity <= 0) {
+        cart.splice(idx, 1);
+      }
+      saveCart();
+    }
+
+    function removeCartItem(productId) {
+      cart = cart.filter(p => p.id !== productId);
+      saveCart();
+      notify('Item removed from cart', 'info');
+    }
+
+    function clearCart() {
+      if (cart.length === 0) return;
+      cart = [];
+      saveCart();
+      notify('Your shopping cart was cleared', 'info');
+    }
+
+    function toggleCartModal(open) {
+      const drawer = document.getElementById('cartDrawer');
+      const backdrop = document.getElementById('cartDrawerBackdrop');
+
+      if (open) {
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+          backdrop.classList.remove('opacity-0');
+          drawer.classList.remove('translate-x-full');
+        }, 10);
+      } else {
+        backdrop.classList.add('opacity-0');
+        drawer.classList.add('translate-x-full');
+        setTimeout(() => {
+          backdrop.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function updateCartUI() {
+      const badge = document.getElementById('cartCountBadge');
+      const drawerBadge = document.getElementById('drawerBadgeCount');
+      const container = document.getElementById('cartItemsContainer');
+      const subtotalEl = document.getElementById('cartSubtotal');
+      const shippingEl = document.getElementById('cartShipping');
+      const discountEl = document.getElementById('cartDiscount');
+      const grandTotalEl = document.getElementById('cartGrandTotal');
+      const checkoutBtn = document.getElementById('checkoutBtn');
+
+      const totalItems = cart.reduce((acc, curr) => acc + curr.quantity, 0);
+
+      if (totalItems > 0) {
+        badge.textContent = totalItems;
+        badge.classList.remove('scale-0');
+        badge.classList.add('scale-100');
+        drawerBadge.textContent = `${totalItems} items`;
+      } else {
+        badge.classList.remove('scale-100');
+        badge.classList.add('scale-0');
+        drawerBadge.textContent = '0 items';
+      }
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center py-12 text-slate-400">
+            <i class="fa-solid fa-cart-shopping text-5xl mb-3 text-slate-300"></i>
+            <p class="font-bold text-slate-700 text-sm">Your cart is empty</p>
+            <p class="text-xs text-slate-500 mt-1 max-w-xs">Explore our latest arrivals and member discounts.</p>
+            <button onclick="toggleCartModal(false)" class="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">
+              Start Shopping
+            </button>
+          </div>
+        `;
+        subtotalEl.textContent = '$0.00';
+        shippingEl.textContent = '$0.00';
+        discountEl.textContent = '-$0.00';
+        grandTotalEl.textContent = '$0.00';
+        checkoutBtn.disabled = true;
+        checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      checkoutBtn.disabled = false;
+      checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+      container.innerHTML = cart.map(item => `
+        <div class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <img 
+            src="${item.image}" 
+            alt="${item.title}" 
+            class="w-16 h-16 object-cover rounded-xl bg-slate-100 flex-shrink-0"
+            onerror="this.src='https://placehold.co/100x100/f1f5f9/475569?text=Item'"
+          />
+          <div class="flex-1 min-w-0">
+            <h5 class="text-xs sm:text-sm font-bold text-slate-800 truncate">${item.title}</h5>
+            <p class="text-xs text-teal-700 font-bold mt-0.5">$${item.price.toFixed(2)}</p>
+            <div class="flex items-center gap-2 mt-2">
+              <button 
+                onclick="updateCartItemQty(${item.id}, -1)" 
+                class="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs flex items-center justify-center"
+              >
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <span class="text-xs font-bold text-slate-800 w-5 text-center">${item.quantity}</span>
+              <button 
+                onclick="updateCartItemQty(${item.id}, 1)" 
+                class="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs flex items-center justify-center"
+              >
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <button 
+            onclick="removeCartItem(${item.id})" 
+            title="Delete" 
+            class="text-slate-400 hover:text-red-500 p-2 text-sm transition-colors"
+          >
+            <i class="fa-regular fa-trash-can"></i>
+          </button>
+        </div>
+      `).join('');
+
+      // Calculations
+      const subtotal = cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+      const shipping = subtotal > 75 ? 0 : 9.99;
+      // 15% discount for logged in users
+      const discount = currentUser ? (subtotal * 0.15) : 0;
+      const grandTotal = Math.max(0, subtotal - discount + (subtotal > 0 ? shipping : 0));
+
+      subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      shippingEl.textContent = shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`;
+      discountEl.textContent = `-$${discount.toFixed(2)}`;
+      grandTotalEl.textContent = `$${grandTotal.toFixed(2)}`;
+    }
+
+    function initiateCheckout() {
+      if (!currentUser) {
+        toggleCartModal(false);
+        promptAuthForCart();
+        return;
+      }
+
+      if (cart.length === 0) {
+        notify('Your cart is empty', 'error');
+        return;
+      }
+
+      toggleCartModal(false);
+      const modal = document.getElementById('checkoutSuccessModal');
+      document.getElementById('orderRefNumber').textContent = '#AURA-' + Math.floor(100000 + Math.random() * 900000);
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+      }, 10);
+
+      // Empty cart after purchase
+      cart = [];
+      saveCart();
+    }
+
+    function closeCheckoutSuccess() {
+      const modal = document.getElementById('checkoutSuccessModal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
+    // Quick View
+    function openQuickView(productId) {
+      const product = PRODUCTS.find(p => p.id === productId);
+      if (!product) return;
+      selectedQuickViewItem = product;
+
+      document.getElementById('qvImage').src = product.image;
+      document.getElementById('qvTitle').textContent = product.title;
+      document.getElementById('qvCategory').textContent = product.category;
+      document.getElementById('qvDescription').textContent = product.description;
+      document.getElementById('qvStars').innerHTML = renderStarRating(product.rating);
+      document.getElementById('qvRatingText').textContent = `(${product.rating} / ${product.reviews} reviews)`;
+
+      const priceBlock = document.getElementById('qvPriceBlock');
+      const addBtn = document.getElementById('qvAddToCartBtn');
+
+      if (currentUser) {
+        priceBlock.innerHTML = `$${product.price.toFixed(2)} <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full ml-2">VIP 15% Eligible</span>`;
+        addBtn.innerHTML = `<i class="fa-solid fa-bag-shopping mr-1.5"></i> Add to Cart`;
+      } else {
+        priceBlock.innerHTML = `<span class="text-base text-slate-500 font-semibold">$${product.price.toFixed(2)} (Login to shop)</span>`;
+        addBtn.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket mr-1.5"></i> Sign In to Purchase`;
+      }
+
+      const modal = document.getElementById('quickViewModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.querySelector('.transform').classList.remove('scale-95');
+      }, 10);
+    }
+
+    function closeQuickView() {
+      const modal = document.getElementById('quickViewModal');
+      modal.classList.add('opacity-0');
+      modal.querySelector('.transform').classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        selectedQuickViewItem = null;
+      }, 200);
+    }
+
+    function addQuickViewToCart() {
+      if (!selectedQuickViewItem) return;
+      if (!currentUser) {
+        closeQuickView();
+        promptAuthForCart();
+        return;
+      }
+      addToCart(selectedQuickViewItem.id);
+      closeQuickView();
+    }
+
+    function notify(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      let bgStyle = 'bg-slate-900 text-white';
+      let icon = 'fa-circle-check text-emerald-400';
+
+      if (type === 'error') {
+        bgStyle = 'bg-rose-900 text-white';
+        icon = 'fa-circle-xmark text-rose-300';
+      } else if (type === 'info') {
+        bgStyle = 'bg-teal-900 text-white';
+        icon = 'fa-circle-info text-teal-300';
+      }
+
+      toast.className = `${bgStyle} px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-semibold transform translate-y-3 opacity-0 transition-all duration-200 pointer-events-auto border border-white/10`;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+      }, 10);
+
+      // Dismiss
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-6');
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+  </script>
+</body>
+</html>
